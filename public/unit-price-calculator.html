@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unit Price Calculator</title>
+  <meta name="description" content="Calculate price per unit across different measurement systems">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+    <link rel="stylesheet" href="output.css">
+</head>
+<body class="bg-slate-100 min-h-screen">
+  <div class="container mx-auto px-4 py-8 max-w-md">
+    <h1 class="text-2xl font-bold mb-6 text-slate-900">Unit Price Calculator</h1>
+    
+    <!-- Calculator Form -->
+    <div class="card mb-6">
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label for="price" class="block text-sm font-medium text-slate-700 mb-1">Price</label>
+          <input type="number" id="price" class="input w-full" step="0.01" placeholder="0.00">
+        </div>
+        <div>
+          <label for="quantity" class="block text-sm font-medium text-slate-700 mb-1">Quantity</label>
+          <input type="number" id="quantity" class="input w-full" step="0.01" placeholder="0">
+        </div>
+      </div>
+      
+      <div class="mb-4">
+        <label for="unit" class="block text-sm font-medium text-slate-700 mb-1">Unit</label>
+        <select id="unit" class="input w-full">
+          <option value="oz">Ounces (oz)</option>
+          <option value="g">Grams (g)</option>
+          <option value="lb">Pounds (lb)</option>
+          <option value="kg">Kilograms (kg)</option>
+          <option value="ml">Milliliters (ml)</option>
+          <option value="l">Liters (l)</option>
+          <option value="floz">Fluid Ounces (fl oz)</option>
+          <option value="count">Count (items)</option>
+        </select>
+      </div>
+      
+      <div class="mb-4">
+        <label for="productName" class="block text-sm font-medium text-slate-700 mb-1">Product Name (optional)</label>
+        <input type="text" id="productName" class="input w-full" placeholder="e.g., Brand X Olive Oil">
+      </div>
+      
+      <div class="flex gap-2">
+        <button id="calculateBtn" class="btn btn-primary flex-1">Calculate</button>
+        <!-- <button id="cameraBtn" class="btn btn-secondary">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button> -->
+      </div>
+    </div>
+    
+    <!-- Results Card -->
+    <div id="resultsCard" class="card mb-6 hidden">
+      <h2 class="text-lg font-semibold mb-2">Price Breakdown</h2>
+      <div id="productNameDisplay" class="text-sm text-slate-600 mb-3"></div>
+      
+      <div class="grid grid-cols-2 gap-2 mb-4">
+        <div class="bg-slate-50 p-2 rounded">
+          <div class="text-sm text-slate-500">$/oz</div>
+          <div id="pricePerOz" class="font-medium">-</div>
+        </div>
+        <div class="bg-slate-50 p-2 rounded">
+          <div class="text-sm text-slate-500">$/g</div>
+          <div id="pricePerGram" class="font-medium">-</div>
+        </div>
+        <div class="bg-slate-50 p-2 rounded">
+          <div class="text-sm text-slate-500">$/lb</div>
+          <div id="pricePerPound" class="font-medium">-</div>
+        </div>
+        <div class="bg-slate-50 p-2 rounded">
+          <div class="text-sm text-slate-500">$/kg</div>
+          <div id="pricePerKg" class="font-medium">-</div>
+        </div>
+        <div class="bg-slate-50 p-2 rounded">
+          <div class="text-sm text-slate-500">$/fl oz</div>
+          <div id="pricePerFlOz" class="font-medium">-</div>
+        </div>
+        <div class="bg-slate-50 p-2 rounded">
+          <div class="text-sm text-slate-500">$/liter</div>
+          <div id="pricePerLiter" class="font-medium">-</div>
+        </div>
+        <div class="bg-slate-50 p-2 rounded">
+            <div class="text-sm text-slate-500">$/count</div>
+            <div id="pricePerCount" class="font-medium">-</div>
+        </div>
+      </div>
+      <button id="saveBtn" class="btn btn-primary w-full">Save Calculation</button>
+    </div>
+    
+    <!-- History Card -->
+    <div class="card">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold">History</h2>
+        <div class="flex gap-2">
+          <button id="exportBtn" class="btn btn-secondary text-sm py-1">Export</button>
+          <button id="clearBtn" class="btn btn-secondary text-sm py-1">Clear</button>
+        </div>
+      </div>
+      
+      <div id="historyList" class="divide-y divide-slate-200">
+        <!-- History items will be added here -->
+        <div class="text-sm text-slate-500 py-3 text-center">No saved calculations</div>
+      </div>
+    </div>
+    
+    <!-- Camera Modal -->
+    <div id="cameraModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+      <div class="bg-white rounded-lg max-w-md w-full mx-4 overflow-hidden">
+        <div class="p-4 border-b border-slate-200 flex justify-between items-center">
+          <h3 class="font-semibold">Take Photo</h3>
+          <button id="closeModalBtn" class="text-slate-500 hover:text-slate-700">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+        
+        <div class="relative">
+          <video id="cameraPreview" class="w-full h-64 object-cover bg-slate-900"></video>
+          <canvas id="photoCanvas" class="hidden"></canvas>
+        </div>
+        
+        <div class="p-4 flex gap-2">
+          <button id="captureBtn" class="btn btn-primary flex-1">Capture</button>
+          <button id="retakeBtn" class="btn btn-secondary flex-1 hidden">Retake</button>
+          <button id="usePhotoBtn" class="btn btn-primary flex-1 hidden">Use Photo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Main application logic
+    document.addEventListener('DOMContentLoaded', () => {
+      // DOM Selectors
+      const DOM = {
+        priceInput: document.getElementById('price'),
+        quantityInput: document.getElementById('quantity'),
+        unitSelect: document.getElementById('unit'),
+        productNameInput: document.getElementById('productName'),
+        calculateBtn: document.getElementById('calculateBtn'),
+        resultsCard: document.getElementById('resultsCard'),
+        saveBtn: document.getElementById('saveBtn'),
+        exportBtn: document.getElementById('exportBtn'),
+        clearBtn: document.getElementById('clearBtn'),
+        historyList: document.getElementById('historyList'),
+        cameraModal: document.getElementById('cameraModal'),
+        cameraBtn: document.getElementById('cameraBtn'),
+        closeModalBtn: document.getElementById('closeModalBtn'),
+        captureBtn: document.getElementById('captureBtn'),
+        retakeBtn: document.getElementById('retakeBtn'),
+        usePhotoBtn: document.getElementById('usePhotoBtn'),
+        cameraPreview: document.getElementById('cameraPreview'),
+        photoCanvas: document.getElementById('photoCanvas'),
+      };
+
+      // Utility Functions
+      function formatPrice(price) {
+        if (price === null) return 'N/A';
+        return `$${price.toFixed(4)}`;
+      }
+
+      function toggleElementVisibility(element, isVisible) {
+        element.classList.toggle('hidden', !isVisible);
+      }
+
+      // IndexedDB Helper
+      class IndexedDBHelper {
+        constructor(dbName, storeName) {
+          this.dbName = dbName;
+          this.storeName = storeName;
+          this.db = null;
+        }
+
+        async init() {
+          return new Promise((resolve, reject) => {
+            const request = indexedDB.open(this.dbName, 1);
+            request.onupgradeneeded = (event) => {
+              const db = event.target.result;
+              if (!db.objectStoreNames.contains(this.storeName)) {
+                db.createObjectStore(this.storeName, { keyPath: 'id', autoIncrement: true });
+              }
+            };
+            request.onsuccess = (event) => {
+              this.db = event.target.result;
+              resolve();
+            };
+            request.onerror = (event) => reject(event.target.error);
+          });
+        }
+
+        async save(data) {
+          return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction([this.storeName], 'readwrite');
+            const store = transaction.objectStore(this.storeName);
+            const request = store.add(data);
+            request.onsuccess = () => resolve();
+            request.onerror = (event) => reject(event.target.error);
+          });
+        }
+
+        async getAll() {
+          return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction([this.storeName], 'readonly');
+            const store = transaction.objectStore(this.storeName);
+            const request = store.getAll();
+            request.onsuccess = (event) => resolve(event.target.result);
+            request.onerror = (event) => reject(event.target.error);
+          });
+        }
+
+        async clear() {
+          return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction([this.storeName], 'readwrite');
+            const store = transaction.objectStore(this.storeName);
+            const request = store.clear();
+            request.onsuccess = () => resolve();
+            request.onerror = (event) => reject(event.target.error);
+          });
+        }
+      }
+
+      // Initialize IndexedDB
+      const dbHelper = new IndexedDBHelper('UnitPriceCalculator', 'calculations');
+      dbHelper.init().then(loadHistory);
+
+      // Load History
+      async function loadHistory() {
+        try {
+          const historyItems = await dbHelper.getAll();
+          renderHistoryItems(historyItems);
+        } catch (error) {
+          console.error('Failed to load history:', error);
+          alert('An error occurred while loading history.');
+        }
+      }
+
+      function renderHistoryItems(historyItems) {
+        if (historyItems.length > 0) {
+          DOM.historyList.innerHTML = '';
+          historyItems.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'py-3';
+            div.innerHTML = `
+              <div class="flex justify-between items-center">
+                <div>
+                  <div class="font-medium">${item.productName}</div>
+                  <div class="text-sm text-slate-600">
+                    ${item.price.toFixed(2)} / ${item.quantity} ${item.unit}
+                  </div>
+                </div>
+                <div class="text-sm font-semibold">
+                  ${formatPrice(item.price / item.quantity)}/${item.unit}
+                </div>
+              </div>
+            `;
+            DOM.historyList.appendChild(div);
+          });
+        } else {
+          DOM.historyList.innerHTML = '<div class="text-sm text-slate-500 py-3 text-center">No saved calculations</div>';
+        }
+      }
+
+      // Event Listeners
+      DOM.calculateBtn.addEventListener('click', calculatePrices);
+      DOM.saveBtn.addEventListener('click', saveCalculation);
+      DOM.exportBtn.addEventListener('click', exportData);
+      DOM.clearBtn.addEventListener('click', clearHistory);
+
+      // Unit conversion graph
+      const CONVERSION_GRAPH = {
+        oz: { g: 28.3495, lb: 0.0625, kg: 0.0283495 },
+        g: { oz: 0.035274, lb: 0.00220462, kg: 0.001 },
+        lb: { oz: 16, g: 453.592, kg: 0.453592 },
+        kg: { oz: 35.274, g: 1000, lb: 2.20462 },
+        ml: { l: 0.001, floz: 0.033814 },
+        l: { ml: 1000, floz: 33.814 },
+        floz: { ml: 29.5735, l: 0.0295735 },
+        count: {} // No conversions for count
+      };
+
+      // Calculate button event
+      function calculatePrices() {
+        const price = parseFloat(DOM.priceInput.value);
+        const quantity = parseFloat(DOM.quantityInput.value);
+        const unit = DOM.unitSelect.value;
+        
+        if (isNaN(price) || isNaN(quantity) || quantity <= 0) {
+          alert('Please enter valid price and quantity values');
+          return;
+        }
+        
+        const pricePerUnit = price / quantity;
+        
+        // Calculate and display price per unit in different units
+        document.getElementById('pricePerOz').textContent = formatPrice(convertPrice(pricePerUnit, unit, 'oz'));
+        document.getElementById('pricePerGram').textContent = formatPrice(convertPrice(pricePerUnit, unit, 'g'));
+        document.getElementById('pricePerPound').textContent = formatPrice(convertPrice(pricePerUnit, unit, 'lb'));
+        document.getElementById('pricePerKg').textContent = formatPrice(convertPrice(pricePerUnit, unit, 'kg'));
+        document.getElementById('pricePerFlOz').textContent = formatPrice(convertPrice(pricePerUnit, unit, 'floz'));
+        document.getElementById('pricePerLiter').textContent = formatPrice(convertPrice(pricePerUnit, unit, 'l'));
+        document.getElementById('pricePerCount').textContent = formatPrice(convertPrice(pricePerUnit, unit, 'count'));
+        const productName = DOM.productNameInput.value.trim();
+        if (productName) {
+          document.getElementById('productNameDisplay').textContent = productName;
+        } else {
+          document.getElementById('productNameDisplay').textContent = "Unnamed Product";
+        }
+        
+        toggleElementVisibility(DOM.resultsCard, true);
+      }
+
+      // breadth-first search (BFS)
+      function convertPrice(pricePerUnit, fromUnit, toUnit) {
+        if (fromUnit === toUnit) return pricePerUnit;
+
+        const visited = new Set();
+        const queue = [{ unit: fromUnit, factor: 1 }];
+
+        while (queue.length > 0) {
+          const { unit, factor } = queue.shift();
+          if (unit === toUnit) return pricePerUnit * factor;
+
+          visited.add(unit);
+
+          for (const [neighbor, conversionFactor] of Object.entries(CONVERSION_GRAPH[unit] || {})) {
+            if (!visited.has(neighbor)) {
+              queue.push({ unit: neighbor, factor: factor * conversionFactor });
+            }
+          }
+        }
+
+        return null; // Conversion not possible
+      }
+            
+      // Save calculation to IndexedDB
+      async function saveCalculation() {
+        const calculation = {
+          price: parseFloat(DOM.priceInput.value),
+          quantity: parseFloat(DOM.quantityInput.value),
+          unit: DOM.unitSelect.value,
+          productName: DOM.productNameInput.value.trim() || 'Unnamed Product',
+          date: new Date().toISOString()
+        };
+        
+        try {
+          await dbHelper.save(calculation);
+          loadHistory();
+          alert('Calculation saved');
+        } catch (error) {
+          console.error('Failed to save calculation:', error);
+          alert('An error occurred while saving the calculation.');
+        }
+      }
+      
+      // Export data to JSON
+      async function exportData() {
+        try {
+          const data = await dbHelper.getAll();
+          if (data.length === 0) {
+            alert('No data to export');
+            return;
+          }
+          
+          const dataStr = JSON.stringify(data, null, 2);
+          const blob = new Blob([dataStr], {type: 'application/json'});
+          const url = URL.createObjectURL(blob);
+          
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'unit-price-data.json';
+          document.body.appendChild(a);
+          a.click();
+          
+          setTimeout(() => {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+          }, 0);
+        } catch (error) {
+          console.error('Failed to export data:', error);
+          alert('An error occurred while exporting data.');
+        }
+      }
+      
+      // Clear all data
+      async function clearHistory() {
+        if (confirm('Are you sure you want to clear all saved calculations?')) {
+          try {
+            await dbHelper.clear();
+            loadHistory();
+            alert('All calculations cleared');
+          } catch (error) {
+            console.error('Failed to clear history:', error);
+            alert('An error occurred while clearing history.');
+          }
+        }
+      }
+      
+      // Camera functionality
+      let stream = null;
+      
+      DOM.cameraBtn.addEventListener('click', () => {
+        toggleElementVisibility(DOM.cameraModal, true);
+        startCamera();
+      });
+      
+      DOM.closeModalBtn.addEventListener('click', () => {
+        toggleElementVisibility(DOM.cameraModal, false);
+        stopCamera();
+      });
+      
+      function startCamera() {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(mediaStream => {
+              stream = mediaStream;
+              DOM.cameraPreview.srcObject = stream;
+              DOM.cameraPreview.play();
+            })
+            .catch(err => {
+              console.error('Camera error:', err);
+              alert('Unable to access camera. Please ensure camera permissions are enabled.');
+            });
+        } else {
+          alert('Camera access is not supported in your browser.');
+        }
+      }
+      
+      function stopCamera() {
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+          stream = null;
+        }
+      }
+      
+      DOM.captureBtn.addEventListener('click', () => {
+        const context = DOM.photoCanvas.getContext('2d');
+        DOM.photoCanvas.width = DOM.cameraPreview.videoWidth;
+        DOM.photoCanvas.height = DOM.cameraPreview.videoHeight;
+        context.drawImage(DOM.cameraPreview, 0, 0, DOM.photoCanvas.width, DOM.photoCanvas.height);
+        
+        toggleElementVisibility(DOM.cameraPreview, false);
+        toggleElementVisibility(DOM.photoCanvas, true);
+        toggleElementVisibility(DOM.captureBtn, false);
+        toggleElementVisibility(DOM.retakeBtn, true);
+        toggleElementVisibility(DOM.usePhotoBtn, true);
+        
+        // For future: Here you would send the photo to an API for OCR processing
+      });
+      
+      DOM.retakeBtn.addEventListener('click', () => {
+        toggleElementVisibility(DOM.photoCanvas, false);
+        toggleElementVisibility(DOM.cameraPreview, true);
+        toggleElementVisibility(DOM.captureBtn, true);
+        toggleElementVisibility(DOM.retakeBtn, false);
+        toggleElementVisibility(DOM.usePhotoBtn, false);
+      });
+      
+      DOM.usePhotoBtn.addEventListener('click', () => {
+        // For future: Process the photo and extract price/quantity
+        // For now, we'll just close the modal
+        toggleElementVisibility(DOM.cameraModal, false);
+        stopCamera();
+        
+        // Placeholder for future OCR integration
+        alert('Photo captured! OCR processing would happen here in a future version.');
+      });
+
+      // Register service worker for PWA support
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').then(registration => {
+            console.log('ServiceWorker registered with scope:', registration.scope);
+          }).catch(error => {
+            console.log('ServiceWorker registration failed:', error);
+          });
+        });
+      }
+    });
+  </script>
+</body>
+</html>
